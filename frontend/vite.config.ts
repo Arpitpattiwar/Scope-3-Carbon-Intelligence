@@ -10,7 +10,7 @@ export default defineConfig({
   server: {
     port: 3000,
     proxy: {
-      '/api': { target: 'http://backend:8000', rewrite: (p) => p.replace(/^\/api/, '') }
+      '/api': { target: 'https://scope-3-carbon-intelligence.onrender.com', rewrite: (p) => p.replace(/^\/api/, '') }
     }
   }
 })
