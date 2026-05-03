@@ -10,7 +10,11 @@ Confidence always capped at 0.75 (C-grade per GHG Protocol Tier 3).
 """
 from datetime import date
 from typing import Any, Optional
+import logging
+
 from app.services.ml_client import MLServiceError, estimate_spend
+
+logger = logging.getLogger(__name__)
 
 ML_SPEND_CATEGORIES  = {1, 2, 13, 14, 15}
 ALL_SPEND_CATEGORIES = set(range(1, 16))
@@ -97,6 +101,6 @@ def estimate_spend_based_emissions(category_id, available_data, vendor_profile=N
                                    "nic_4digit":int(nic),"region":str(rgn),"year":year},
                     "methodology_reference":f"GHG Protocol Category {category_id} — DEFRA/EEIO ML model",
                 }
-            except MLServiceError:
-                pass
+            except MLServiceError as exc:
+                logger.warning("ML spend estimate unavailable; falling back to rule-based estimate: %s", exc)
     return _rule(category_id, spend, year)

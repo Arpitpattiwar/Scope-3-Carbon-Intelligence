@@ -31,6 +31,7 @@ _spend_model      = None
 _spend_prep       = None
 
 BASE = Path(__file__).parent.parent
+FORECAST_MC_SAMPLES = max(1, int(os.getenv('ML_FORECAST_MC_SAMPLES', '20')))
 
 
 def _get_anomaly_threshold(winner: str) -> float:
@@ -414,7 +415,7 @@ def predict_forecast(sector: str,
         X        = features[-12:][np.newaxis]   # (1, 12, 4)
 
         device = get_device()
-        fc     = M.get_forecast(active_model, X, device=device, n_mc=100)
+        fc     = M.get_forecast(active_model, X, device=device, n_mc=FORECAST_MC_SAMPLES)
         mean_s  = fc['mean'][0]
         lower_s = fc['lower'][0]
         upper_s = fc['upper'][0]

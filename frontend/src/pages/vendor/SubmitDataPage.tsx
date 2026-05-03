@@ -202,11 +202,16 @@ export default function SubmitDataPage() {
 
   // ── AI spend estimate ─────────────────────────────────────────────────────
   const runEstimate = async () => {
-    if (!spendInr || !catNum) return
+    if (!spendInr || !catNum) {
+      toast.error('Select a category and enter total spend')
+      return
+    }
     setEstimateLoading(true)
     try {
       const res = await emissionsApi.estimateMissing({
-        category_id: catNum, spend_inr: parseFloat(spendInr),
+        category_id: catNum,
+        spend_inr: parseFloat(spendInr),
+        year: periodStart ? new Date(periodStart).getFullYear() : undefined,
       })
       setEstimateResult(res.data)
     } catch (e: any) {
@@ -605,8 +610,8 @@ export default function SubmitDataPage() {
                       placeholder="e.g. 5000000" className="input"/>
                   </div>
                   <div className="flex items-end">
-                    <button onClick={runEstimate}
-                      disabled={!spendInr || estimateLoading || !periodStart}
+                    <button type="button" onClick={runEstimate}
+                      disabled={!spendInr || estimateLoading}
                       className="btn-secondary whitespace-nowrap">
                       {estimateLoading ? 'Estimating…' : 'Get Estimate'}
                     </button>
@@ -633,10 +638,10 @@ export default function SubmitDataPage() {
                     <p className="text-xs text-gray-500">{estimateResult.explanation}</p>
                     <p className="text-xs text-gray-400 italic">{estimateResult.methodology_reference}</p>
                     <div className="flex gap-2">
-                      <button onClick={acceptEstimate} className="btn-primary text-sm py-1.5">
+                      <button type="button" onClick={acceptEstimate} className="btn-primary text-sm py-1.5">
                         <Save size={13}/> Accept & Save as Draft
                       </button>
-                      <button onClick={() => setEstimateResult(null)} className="btn-secondary text-sm py-1.5">
+                      <button type="button" onClick={() => setEstimateResult(null)} className="btn-secondary text-sm py-1.5">
                         Discard
                       </button>
                     </div>

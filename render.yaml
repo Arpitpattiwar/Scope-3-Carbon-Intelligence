@@ -30,6 +30,9 @@ services:
     runtime: docker
     rootDir: ml-service
     plan: free
+    envVars:
+      - key: ML_FORECAST_MC_SAMPLES
+        value: "20"
 
 databases:
   - name: scope3-db

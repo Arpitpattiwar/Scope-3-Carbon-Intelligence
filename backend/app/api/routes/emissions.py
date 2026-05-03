@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func, extract
 from typing import List, Optional
+import logging
 import pandas as pd
 import io
 from datetime import datetime, date
@@ -34,6 +35,7 @@ from app.utils.helpers import region_value
 from pydantic import BaseModel, Field
 
 router = APIRouter(prefix="/emissions", tags=["emissions"])
+logger = logging.getLogger(__name__)
 
 
 class AIEstimateAcceptRequest(BaseModel):
@@ -88,7 +90,8 @@ def _safe_anomaly_check(*, category_id, activity_value, activity_unit, ef_value,
             calculated_co2e=calculated_co2e, data_quality=data_quality, region=region,
         )
         return score_anomaly(payload)
-    except (MLServiceError, ValueError):
+    except (MLServiceError, ValueError) as exc:
+        logger.warning("Anomaly check unavailable: %s", exc)
         return None
 
 def _notify_resubmit(db, record, profile, original_rejector_id, co2e):
