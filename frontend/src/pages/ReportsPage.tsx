@@ -6,6 +6,7 @@ import api from '@/utils/api'
 import { useAuthStore } from '@/store/authStore'
 import { SectionHeader, Select } from '@/components/ui'
 import { downloadBlob } from '@/utils/constants'
+import { URLS } from '@/utils/urls'
 
 const YEARS = Array.from({ length: 5 }, (_, i) => {
   const y = new Date().getFullYear() - i
@@ -123,37 +124,37 @@ export default function ReportsPage() {
           {[
             {
               name: 'GHG Protocol Scope 3 Standard',
-              url: 'https://ghgprotocol.org/corporate-value-chain-scope-3-standard',
+              url: URLS.ghgProtocolScope3,
               badge: 'Required',
               note: 'Corporate Value Chain (Scope 3) Accounting Standard'
             },
             {
               name: 'GRI 305 Emissions Disclosure',
-              url: 'https://www.globalreporting.org/standards/gri-standards-topic-standards/',
+              url: URLS.griStandards,
               badge: 'Required',
               note: 'GRI Topic Standards — Emissions section'
             },
             {
               name: 'DEFRA 2024 Conversion Factors',
-              url: 'https://www.gov.uk/government/publications/greenhouse-gas-reporting-conversion-factors-2024',
+              url: URLS.defraConversionFactors,
               badge: 'EF Source',
               note: 'UK Government GHG conversion factors for company reporting'
             },
             {
               name: 'IPCC AR6 Emission Factors',
-              url: 'https://www.ipcc.ch/report/ar6/wg3/',
+              url: URLS.ipccAr6,
               badge: 'EF Source',
               note: 'Sixth Assessment Report Working Group III — Mitigation'
             },
             {
               name: 'SEBI BRSR Framework 2023',
-              url: 'https://www.sebi.gov.in/legal/circulars/may-2021/business-responsibility-and-sustainability-reporting-by-listed-entities_50096.html',
+              url: URLS.sebiBrsr,
               badge: 'India',
               note: 'SEBI circular on BRSR for listed entities'
             },
             {
               name: 'CPCB India Emission Factors',
-              url: 'https://cpcb.nic.in/',
+              url: URLS.cpcb,
               badge: 'India',
               note: 'Central Pollution Control Board — India-specific EFs'
             },

@@ -3,6 +3,7 @@
  * major cities per state, and representative pincodes.
  * Pincode verification done via postalpincode.in free API.
  */
+import { URLS } from '@/utils/urls'
 
 export const REGION_STATES: Record<string, { name: string; states: string[] }> = {
   north: {
@@ -113,7 +114,7 @@ export async function verifyPincode(pincode: string): Promise<{
     return { valid: false, error: 'Pincode must be exactly 6 digits' }
   }
   try {
-    const res = await fetch(`https://api.postalpincode.in/pincode/${pincode}`)
+    const res = await fetch(`${URLS.pincodeApiBase}/${pincode}`)
     const data = await res.json()
     if (data[0]?.Status === 'Success' && data[0]?.PostOffice?.length > 0) {
       const po = data[0].PostOffice[0]

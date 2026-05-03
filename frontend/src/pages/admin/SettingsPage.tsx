@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 import { periodsApi, targetsApi } from '@/utils/api'
 import { SectionHeader, Modal, Spinner, PageLoader } from '@/components/ui'
+import { URLS } from '@/utils/urls'
 
 export default function SettingsPage() {
   const [periods, setPeriods] = useState<any[]>([])
@@ -161,7 +162,7 @@ SMTP_PASSWORD: xxxx-xxxx-xxxx-xxxx`}</pre>
           <p className="text-xs text-gray-400">
             Without SMTP configured, invitation passwords are shown in the invite modal and printed to the backend console.
           </p>
-          <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noopener noreferrer"
+          <a href={URLS.googleAppPasswords} target="_blank" rel="noopener noreferrer"
             className="inline-flex items-center gap-1 text-xs text-brand-600 hover:underline">
             <ExternalLink size={12}/> Open Google App Passwords
           </a>

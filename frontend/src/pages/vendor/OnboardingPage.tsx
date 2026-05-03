@@ -7,6 +7,7 @@ import { usersApi } from '@/utils/api'
 import { useAuthStore } from '@/store/authStore'
 import { Spinner } from '@/components/ui'
 import { SCOPE3_CATEGORIES } from '@/utils/constants'
+import { URLS } from '@/utils/urls'
 import {
   getStatesForRegion, getCitiesForState, getPincodeForCity, verifyPincode
 } from '@/utils/indiaGeo'
@@ -230,7 +231,7 @@ export default function OnboardingPage() {
                     <Err field="nic_code"/>
                     <p className="text-xs text-gray-400 mt-1">
                       Find yours at{' '}
-                      <a href="https://mospi.gov.in/sites/default/files/main-menu/nec-nic/NIC2008_17Apr09.pdf"
+                      <a href={URLS.nicCodePdf}
                         target="_blank" rel="noopener noreferrer" className="text-brand-600 hover:underline">
                         mospi.gov.in →
                       </a>
