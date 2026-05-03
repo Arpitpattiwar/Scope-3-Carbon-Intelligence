@@ -3,7 +3,7 @@ from typing import Optional
 
 
 class Settings(BaseSettings):
-    DATABASE_URL: str = "postgresql://scope3:scope3pass@localhost:5432/scope3db"
+    DATABASE_URL: str = "postgresql://scope3db_user:7htV4UBf7YwLlEMdUugyRcrXayFMXfdO@dpg-d7rn7h5ckfvc73a69nbg-a/scope3db"
     SECRET_KEY: str = "dev-secret-key-change-in-production"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 480  # 8 hours
