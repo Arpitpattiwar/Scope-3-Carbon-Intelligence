@@ -8,9 +8,7 @@ export default defineConfig({
     alias: { '@': path.resolve(__dirname, './src') }
   },
   server: {
-    port: 3000,
-    proxy: {
-      '/api': { target: 'https://scope-3-carbon-intelligence.onrender.com', rewrite: (p) => p.replace(/^\/api/, '') }
-    }
+    host: true,
+    port: 3000
   }
 })

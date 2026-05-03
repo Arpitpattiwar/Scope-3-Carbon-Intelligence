@@ -8,6 +8,7 @@ from app.models import user as _user_models          # noqa
 from app.models import notification as _notif_models  # noqa
 from app.models import attachment as _att_models      # noqa
 
+from app.core.config import settings
 from app.api.routes.auth          import router as auth_router
 from app.api.routes.users         import router as users_router
 from app.api.routes.emissions     import router as emissions_router
@@ -31,7 +32,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:5173", "https://scope-3-carbon-intelligence-gyt4a0d75.vercel.app"],
+    allow_origins=settings.cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

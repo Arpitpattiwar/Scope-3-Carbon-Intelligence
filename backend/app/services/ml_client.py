@@ -80,7 +80,7 @@ def _normalise_region(region: Any) -> int:
 
 
 def _request_json(method: str, path: str, payload: dict[str, Any] | None = None) -> dict[str, Any]:
-    url = f"{settings.ML_SERVICE_URL.rstrip('/')}{path}"
+    url = f"{settings.ml_service_base_url}{path}"
     try:
         with httpx.Client(timeout=settings.ML_SERVICE_TIMEOUT_SECONDS) as client:
             response = client.request(method, url, json=payload)

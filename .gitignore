@@ -1,5 +1,8 @@
 __pycache__/
 *.pyc
 .env
+.env.local
+.env.*.local
 node_modules/
+dist/
 Scope3_Platform_Documentation.docxx 

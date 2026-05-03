@@ -2,15 +2,15 @@ services:
   db:
     image: postgres:15-alpine
     environment:
-      POSTGRES_USER: scope3
-      POSTGRES_PASSWORD: scope3pass
-      POSTGRES_DB: scope3db
+      POSTGRES_USER: ${POSTGRES_USER:-scope3}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-scope3pass}
+      POSTGRES_DB: ${POSTGRES_DB:-scope3db}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U scope3 -d scope3db"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-scope3} -d $${POSTGRES_DB:-scope3db}"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -20,24 +20,13 @@ services:
     build: ./backend
     ports:
       - "8000:8000"
+    env_file:
+      - ./backend/.env
     environment:
-      DATABASE_URL: postgresql://scope3:scope3pass@db:5432/scope3db
-      SECRET_KEY: change-this-in-production-use-openssl-rand-hex-32
-
-      # ── Email / SMTP ─────────────────────────────────────────────────────────
-      # For Gmail: Create an App Password at https://myaccount.google.com/apppasswords
-      # Set SMTP_USER to your Gmail address and SMTP_PASSWORD to the 16-char app password
-      # Leave SMTP_USER empty to use console mock mode (passwords shown in invite modal)
-      SMTP_HOST: smtp.gmail.com
-      SMTP_PORT: 587
-      SMTP_USER: "scope3platform@gmail.com"        # e.g. yourname@gmail.com
-      SMTP_PASSWORD: "suay dwqd necp qpij"    # e.g. abcd efgh ijkl mnop (Gmail App Password)
-
-      FRONTEND_URL: http://localhost:3000
-      AI_ESTIMATION_ENABLED: "true"
-      FORCE_RESEED: "true"
+      DATABASE_URL: postgresql://${POSTGRES_USER:-scope3}:${POSTGRES_PASSWORD:-scope3pass}@db:5432/${POSTGRES_DB:-scope3db}
       ML_SERVICE_URL: http://ml-service:8001
-
+      FRONTEND_URL: http://localhost:3000
+      CORS_ORIGINS: http://localhost:3000,http://localhost:5173
     depends_on:
       db:
         condition: service_healthy
@@ -52,6 +41,8 @@ services:
     build: ./ml-service
     ports:
       - "8001:8001"
+    env_file:
+      - ./ml-service/.env
     volumes:
       - ./ml-service:/app
     command: uvicorn service_app:app --host 0.0.0.0 --port 8001
@@ -60,8 +51,8 @@ services:
     build: ./frontend
     ports:
       - "3000:3000"
-    environment:
-      VITE_API_URL: http://localhost:8000
+    env_file:
+      - ./frontend/.env
     depends_on:
       - backend
     volumes:

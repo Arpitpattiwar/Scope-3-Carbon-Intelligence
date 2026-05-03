@@ -22,4 +22,4 @@ RUN python -m pip install --upgrade pip setuptools wheel && \
 
 COPY . .
 
-CMD ["uvicorn", "service_app:app", "--host", "0.0.0.0", "--port", "8001"]
+CMD ["sh", "-c", "uvicorn service_app:app --host 0.0.0.0 --port ${PORT:-8001}"]
