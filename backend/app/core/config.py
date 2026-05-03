@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     AI_MODEL_PATH: Optional[str] = None
     ML_SERVICE_URL: str = "http://localhost:8001"
     ML_SERVICE_HOSTPORT: Optional[str] = None
-    ML_SERVICE_TIMEOUT_SECONDS: float = 10.0
+    ML_SERVICE_TIMEOUT_SECONDS: float = 60.0
 
     # Set to true to wipe and re-seed on startup. Reset to false after first seed.
     FORCE_RESEED: bool = False

@@ -284,11 +284,19 @@ def get_forecast(
     try:
         ml_result = forecast_emissions(sector=sector, history=history_values)
     except MLServiceError as exc:
-        raise HTTPException(
-            status_code=503,
-            detail=f"Forecast service unavailable: {exc}. "
-                   "Ensure the ML service container is running.",
-        )
+        return {
+            "history": history_display,
+            "forecast": [],
+            "lower_90": [],
+            "upper_90": [],
+            "forecast_available": False,
+            "reason": (
+                f"Forecast service is warming up or temporarily unavailable. "
+                f"Details: {exc}"
+            ),
+            "model_used": None,
+            "sector": sector,
+        }
 
     # ── Step 5: Build forecast period labels (month after last history point) ─
     last = history_display[-1]["period"]          # e.g. "2024-11"
