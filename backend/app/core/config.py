@@ -1,4 +1,5 @@
 from typing import Optional
+import os
 
 from pydantic_settings import BaseSettings
 
@@ -37,6 +38,10 @@ class Settings(BaseSettings):
         if self.ML_SERVICE_HOSTPORT:
             return f"http://{self.ML_SERVICE_HOSTPORT.strip().rstrip('/')}"
         return self.ML_SERVICE_URL.strip().rstrip("/")
+
+    @property
+    def is_render(self) -> bool:
+        return bool(os.getenv("RENDER") or os.getenv("RENDER_EXTERNAL_URL"))
 
     class Config:
         env_file = ".env"
