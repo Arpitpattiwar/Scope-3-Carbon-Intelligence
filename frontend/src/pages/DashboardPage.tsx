@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
-import { Factory, TrendingUp, BarChart3, AlertTriangle, Target, Clock } from 'lucide-react'
+import { Factory, TrendingUp, BarChart3, AlertTriangle, Target, Clock, BrainCircuit, Info } from 'lucide-react'
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid,
-  Tooltip, ResponsiveContainer, PieChart, Pie, Cell, ReferenceLine
+  Tooltip, ResponsiveContainer, PieChart, Pie, Cell, ReferenceLine,
+  ComposedChart, Line, Legend,
 } from 'recharts'
 import { dashboardApi, targetsApi } from '@/utils/api'
 import { useAuthStore } from '@/store/authStore'
@@ -21,6 +22,12 @@ const FREQ_OPTIONS = [
   { value: 'quarterly', label: 'Quarterly' },
   { value: 'yearly',    label: 'Yearly' },
 ]
+const SECTOR_OPTIONS = [
+  { value: 'coal',   label: 'Industrial (Coal proxy)' },
+  { value: 'oil',    label: 'Transport (Oil proxy)' },
+  { value: 'gas',    label: 'Energy (Gas proxy)' },
+  { value: 'cement', label: 'Construction (Cement proxy)' },
+]
 
 export default function DashboardPage() {
   const { user } = useAuthStore()
@@ -38,12 +45,32 @@ export default function DashboardPage() {
   const [targets, setTargets]   = useState<any[]>([])
   const [targetModal, setTargetModal] = useState(false)
   const [savingTarget, setSavingTarget] = useState(false)
+  // Forecast state
+  const [forecastSector, setForecastSector] = useState('coal')
+  const [forecastData, setForecastData]     = useState<any>(null)
+  const [forecastLoading, setForecastLoading] = useState(false)
+  const [forecastError, setForecastError]   = useState<string | null>(null)
+
   const { register, handleSubmit, reset } = useForm()
 
   useEffect(() => { fetchAll() }, [year, freq, region])
   useEffect(() => {
     targetsApi.list(parseInt(year)).then(r => setTargets(r.data)).catch(() => {})
   }, [year])
+
+  useEffect(() => { fetchForecast(forecastSector) }, [forecastSector])
+
+  const fetchForecast = async (sector: string) => {
+    setForecastLoading(true)
+    setForecastError(null)
+    try {
+      const r = await dashboardApi.forecast(sector)
+      setForecastData(r.data)
+    } catch (e: any) {
+      setForecastError(e.response?.data?.detail || 'Forecast service unavailable')
+      setForecastData(null)
+    } finally { setForecastLoading(false) }
+  }
 
   const fetchAll = async () => {
     setLoading(true)
@@ -297,6 +324,92 @@ export default function DashboardPage() {
             </ResponsiveContainer>
           </div>
         ) : null}
+      </div>
+
+
+      {/* AI Forecast Panel */}
+      <div className="card p-5 mb-4">
+        <div className="flex items-center justify-between mb-1">
+          <div className="flex items-center gap-2">
+            <BrainCircuit size={15} className="text-brand-600"/>
+            <h3 className="text-sm font-semibold text-gray-900">AI Emission Forecast — Next 3 Months</h3>
+          </div>
+          <Select options={SECTOR_OPTIONS} value={forecastSector} onChange={v => setForecastSector(v)} className="w-52 text-xs"/>
+        </div>
+        <div className="flex items-start gap-2 mb-3 p-2 bg-amber-50 border border-amber-100 rounded-lg">
+          <Info size={13} className="text-amber-500 mt-0.5 flex-shrink-0"/>
+          <p className="text-xs text-amber-700 leading-relaxed">
+            Uses macro India sector emission patterns as a proxy scaled to your last 12 months. Shows trend direction — not exact quantities. 90% bands are indicative (PI coverage ~63% in backtesting).
+          </p>
+        </div>
+        {forecastLoading && (
+          <div className="flex items-center justify-center h-48 gap-2 text-sm text-gray-400">
+            <Spinner size="sm"/> Running LSTM inference…
+          </div>
+        )}
+        {!forecastLoading && forecastError && (
+          <div className="flex items-center justify-center h-48 text-sm text-red-500">{forecastError}</div>
+        )}
+        {!forecastLoading && forecastData && !forecastData.forecast_available && (
+          <div className="flex items-center justify-center h-48 text-center text-sm text-gray-400 px-8">{forecastData.reason}</div>
+        )}
+        {!forecastLoading && forecastData?.forecast_available && (() => {
+          const hist = (forecastData.history || []).map((h: any) => ({
+            period: h.period, actual: h.value, forecast: null, lower: null, upper: null,
+          }))
+          const fc = (forecastData.forecast_periods || []).map((p: string, i: number) => ({
+            period: p, actual: null,
+            forecast: forecastData.forecast[i] ?? null,
+            lower:    forecastData.lower_90[i]  ?? null,
+            upper:    forecastData.upper_90[i]  ?? null,
+          }))
+          const chartData = [...hist.slice(-12), ...fc]
+          return (
+            <>
+              <ResponsiveContainer width="100%" height={240}>
+                <ComposedChart data={chartData}>
+                  <defs>
+                    <linearGradient id="histGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%"  stopColor="#1aa876" stopOpacity={0.18}/>
+                      <stop offset="95%" stopColor="#1aa876" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0"/>
+                  <XAxis dataKey="period" tick={{ fontSize: 10 }}/>
+                  <YAxis tick={{ fontSize: 10 }} tickFormatter={v => `${v}t`}/>
+                  <Tooltip formatter={(value: any, name: string) => {
+                    if (value === null || value === undefined) return null
+                    const labels: Record<string,string> = {actual:'Actual (tCO₂e)',forecast:'Forecast (tCO₂e)',lower:'90% PI Lower',upper:'90% PI Upper'}
+                    return [`${Number(value).toFixed(3)}`, labels[name] ?? name]
+                  }}/>
+                  <Legend iconSize={10}/>
+                  <Area type="monotone" dataKey="actual" stroke="#1aa876" strokeWidth={2} fill="url(#histGrad)" connectNulls={false} dot={false}/>
+                  <Line type="monotone" dataKey="forecast" stroke="#6366f1" strokeWidth={2.5} strokeDasharray="6 3" dot={{ r: 4, fill: '#6366f1', strokeWidth: 0 }} connectNulls={false}/>
+                  <Line type="monotone" dataKey="upper" stroke="#6366f1" strokeWidth={0.5} strokeDasharray="3 3" dot={false} connectNulls={false}/>
+                  <Line type="monotone" dataKey="lower" stroke="#6366f1" strokeWidth={0.5} strokeDasharray="3 3" dot={false} connectNulls={false}/>
+                  {chartData.find((d: any) => d.forecast !== null) && (
+                    <ReferenceLine x={chartData.find((d: any) => d.forecast !== null)?.period}
+                      stroke="#6366f1" strokeDasharray="4 2"
+                      label={{ value: 'Forecast →', position: 'top', fontSize: 9, fill: '#6366f1' }}/>
+                  )}
+                </ComposedChart>
+              </ResponsiveContainer>
+              <div className="flex gap-3 mt-3 flex-wrap">
+                {forecastData.forecast_periods.map((p: string, i: number) => (
+                  <div key={p} className="flex-1 min-w-[90px] bg-indigo-50 border border-indigo-100 rounded-lg p-3 text-center">
+                    <p className="text-xs text-indigo-400 mb-1">{p}</p>
+                    <p className="text-sm font-semibold text-indigo-700">{formatCO2e(forecastData.forecast[i])}</p>
+                    <p className="text-xs text-indigo-300 mt-0.5">[{formatCO2e(forecastData.lower_90[i])} – {formatCO2e(forecastData.upper_90[i])}]</p>
+                  </div>
+                ))}
+                <div className="flex items-center gap-1 ml-auto self-end">
+                  <span className="text-xs text-gray-400">Model:</span>
+                  <span className="text-xs font-medium text-gray-600 bg-gray-100 px-2 py-0.5 rounded">{forecastData.model_used || 'LSTM'}</span>
+                </div>
+              </div>
+            </>
+          )
+        })()}
       </div>
 
       {/* Top vendors table */}

@@ -1,0 +1,170 @@
+{
+  "task": "anomaly_detection",
+  "models": {
+    "isolation_forest": {
+      "pr_auc": 0.5949,
+      "roc_auc": 0.851,
+      "f1": 0.4388,
+      "precision": 0.3266,
+      "recall": 0.6686,
+      "precision_at_24": 1.0,
+      "recall_at_24": 0.142,
+      "threshold": -0.019601,
+      "fpr_threshold": 0.1,
+      "n_total": 2420,
+      "n_anomaly": 169,
+      "n_flagged": 346,
+      "train_time_s": 3.05
+    },
+    "autoencoder": {
+      "pr_auc": 0.6995,
+      "roc_auc": 0.9069,
+      "f1": 0.4972,
+      "precision": 0.361,
+      "recall": 0.7988,
+      "precision_at_24": 0.8333,
+      "recall_at_24": 0.1183,
+      "threshold": 0.179175,
+      "fpr_threshold": 0.1,
+      "n_total": 2420,
+      "n_anomaly": 169,
+      "n_flagged": 374,
+      "train_time_s": 14.23
+    },
+    "vae": {
+      "pr_auc": 0.6583,
+      "roc_auc": 0.9027,
+      "f1": 0.5019,
+      "precision": 0.3671,
+      "recall": 0.7929,
+      "precision_at_24": 0.8333,
+      "recall_at_24": 0.1183,
+      "threshold": 0.25361,
+      "fpr_threshold": 0.1,
+      "n_total": 2420,
+      "n_anomaly": 169,
+      "n_flagged": 365,
+      "train_time_s": 27.39
+    }
+  },
+  "winner": {
+    "winner": "autoencoder",
+    "reason": "Highest PR-AUC (0.6995)",
+    "delong_p": 0.382,
+    "significant": false,
+    "model_path": "saved_models/anomaly/autoencoder.pt"
+  },
+  "per_type_recall": {
+    "isolation_forest": {
+      "copy_paste_duplicate": {
+        "recall": 0.35,
+        "n_total": 20,
+        "n_caught": 7
+      },
+      "ef_unit_mismatch": {
+        "recall": 0.4286,
+        "n_total": 21,
+        "n_caught": 9
+      },
+      "magnitude_spike": {
+        "recall": 1.0,
+        "n_total": 26,
+        "n_caught": 26
+      },
+      "magnitude_underflow": {
+        "recall": 0.625,
+        "n_total": 24,
+        "n_caught": 15
+      },
+      "unit_error_kg_vs_tonne": {
+        "recall": 1.0,
+        "n_total": 31,
+        "n_caught": 31
+      },
+      "unit_error_km_vs_tonne_km": {
+        "recall": 0.7273,
+        "n_total": 22,
+        "n_caught": 16
+      },
+      "wrong_ef_applied": {
+        "recall": 0.36,
+        "n_total": 25,
+        "n_caught": 9
+      }
+    },
+    "autoencoder": {
+      "copy_paste_duplicate": {
+        "recall": 0.5,
+        "n_total": 20,
+        "n_caught": 10
+      },
+      "ef_unit_mismatch": {
+        "recall": 0.5238,
+        "n_total": 21,
+        "n_caught": 11
+      },
+      "magnitude_spike": {
+        "recall": 1.0,
+        "n_total": 26,
+        "n_caught": 26
+      },
+      "magnitude_underflow": {
+        "recall": 0.9167,
+        "n_total": 24,
+        "n_caught": 22
+      },
+      "unit_error_kg_vs_tonne": {
+        "recall": 1.0,
+        "n_total": 31,
+        "n_caught": 31
+      },
+      "unit_error_km_vs_tonne_km": {
+        "recall": 1.0,
+        "n_total": 22,
+        "n_caught": 22
+      },
+      "wrong_ef_applied": {
+        "recall": 0.52,
+        "n_total": 25,
+        "n_caught": 13
+      }
+    },
+    "vae": {
+      "copy_paste_duplicate": {
+        "recall": 0.45,
+        "n_total": 20,
+        "n_caught": 9
+      },
+      "ef_unit_mismatch": {
+        "recall": 0.5714,
+        "n_total": 21,
+        "n_caught": 12
+      },
+      "magnitude_spike": {
+        "recall": 1.0,
+        "n_total": 26,
+        "n_caught": 26
+      },
+      "magnitude_underflow": {
+        "recall": 0.9167,
+        "n_total": 24,
+        "n_caught": 22
+      },
+      "unit_error_kg_vs_tonne": {
+        "recall": 1.0,
+        "n_total": 31,
+        "n_caught": 31
+      },
+      "unit_error_km_vs_tonne_km": {
+        "recall": 1.0,
+        "n_total": 22,
+        "n_caught": 22
+      },
+      "wrong_ef_applied": {
+        "recall": 0.48,
+        "n_total": 25,
+        "n_caught": 12
+      }
+    }
+  }
+}

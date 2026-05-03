@@ -34,7 +34,10 @@ def list_efs(category_id: Optional[int]=None, source: Optional[str]=None,
 @ef_router.post("", response_model=EmissionFactorOut)
 def create_ef(body: EmissionFactorCreate, db: Session=Depends(get_db),
               current_user=Depends(require_admin)):
-    ef = EmissionFactor(**body.model_dump(), created_by=current_user.id)
+    data = body.model_dump()
+    # Normalise source to uppercase for enum compatibility
+    data["source"] = str(data.get("source", "custom")).upper()
+    ef = EmissionFactor(**data, created_by=current_user.id)
     db.add(ef)
     db.flush()
     log_action(db, current_user.id, "CREATE_EF", "emission_factors", ef.id,
@@ -43,6 +46,23 @@ def create_ef(body: EmissionFactorCreate, db: Session=Depends(get_db),
     db.refresh(ef)
     return ef
 
+
+
+
+@ef_router.patch("/{ef_id}", response_model=EmissionFactorOut)
+def update_ef(ef_id: int, body: dict, db: Session=Depends(get_db),
+              current_user=Depends(require_admin)):
+    from app.schemas.schemas import EmissionFactorCreate
+    ef = db.query(EmissionFactor).filter(EmissionFactor.id == ef_id).first()
+    if not ef: raise HTTPException(status_code=404)
+    allowed = {"factor_value","notes","source_url","valid_to","version_tag","is_active"}
+    for k, v in body.items():
+        if k in allowed and hasattr(ef, k):
+            setattr(ef, k, v)
+    log_action(db, current_user.id, "UPDATE_EF", "emission_factors", ef_id, new_value=body)
+    db.commit()
+    db.refresh(ef)
+    return ef
 
 @ef_router.delete("/{ef_id}")
 def deactivate_ef(ef_id: int, db: Session=Depends(get_db),

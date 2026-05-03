@@ -1,0 +1,9 @@
+{
+  "winner": "xgboost",
+  "r2": 0.9915,
+  "mape": 10.553,
+  "beats_naive": true,
+  "naive_mape": 16.437,
+  "improvement_pct": 5.88,
+  "model_path": "saved_models/spend/xgboost.pkl"
+}

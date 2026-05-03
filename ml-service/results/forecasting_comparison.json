@@ -1,0 +1,41 @@
+{
+  "task": "emission_forecasting",
+  "models": {
+    "sarima": {
+      "mae": 4.42187,
+      "rmse": 8.02283,
+      "mape_pct": 8.566,
+      "smape_pct": 9.015,
+      "directional_acc": 0.4526,
+      "pi_coverage_90": 0.5729,
+      "pi_avg_width": 9.44096,
+      "train_time_s": 11.08
+    },
+    "lstm": {
+      "mae": 0.09795,
+      "rmse": 0.11865,
+      "mape_pct": 11.548,
+      "smape_pct": 12.35,
+      "directional_acc": 0.4905,
+      "pi_coverage_90": 0.625,
+      "pi_avg_width": 0.21379,
+      "train_time_s": 5.61
+    },
+    "tft": {
+      "error": "Found input variables with inconsistent numbers of samples: [264, 4344]",
+      "mae": 999,
+      "mape_pct": 999,
+      "pi_coverage_90": 0
+    }
+  },
+  "winner": {
+    "winner": "lstm",
+    "reason": "Lowest MAE (0.0979) with adequate 90% PI coverage",
+    "dm_p_value": null,
+    "model_path": "saved_models/forecasting/lstm.pt"
+  },
+  "dm_test": {
+    "statistic": null,
+    "p_value": null
+  }
+}

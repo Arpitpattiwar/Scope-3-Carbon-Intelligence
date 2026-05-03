@@ -1,0 +1,6 @@
+{
+  "winner": "lstm",
+  "reason": "Lowest MAE (0.0979) with adequate 90% PI coverage",
+  "dm_p_value": null,
+  "model_path": "saved_models/forecasting/lstm.pt"
+}

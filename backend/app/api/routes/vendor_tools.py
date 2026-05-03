@@ -61,6 +61,9 @@ def submission_history(
             "submitted_at": r.submitted_at.isoformat() if r.submitted_at else None,
             "ef_source": ef.source if ef else None,
             "ef_unit": ef.unit if ef else None,
+            "input_mode": r.input_mode or "direct",
+            "rejection_reason_code": str(r.rejection_reason_code).split(".")[-1] if r.rejection_reason_code else None,
+            "parent_record_id": r.parent_record_id,
         })
     return result
 

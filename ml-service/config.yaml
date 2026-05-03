@@ -1,0 +1,120 @@
+paths:
+  raw_data:       data/raw
+  processed_data: data/processed
+  saved_models:   saved_models
+  results:        results
+  plots:          results/plots
+
+seed: 42
+
+# ── Task 1: Anomaly Detection ──────────────────────────────────────
+anomaly:
+  dataset:
+    n_normal:      15000
+    anomaly_rate:  0.07
+    test_size:     0.15
+    val_size:      0.15
+
+  isolation_forest:
+    n_estimators:    200
+    contamination:   0.07
+    max_samples:     256
+    random_state:    42
+
+  autoencoder:
+    hidden_dims:     [64, 32, 16]   # encoder layers (decoder mirrors)
+    bottleneck:      8
+    dropout:         0.1
+    lr:              0.001
+    batch_size:      256
+    epochs:          100
+    patience:        15             # early stopping
+
+  vae:
+    hidden_dims:     [64, 32]
+    latent_dim:      8
+    beta:            1.0            # KL weight in ELBO
+    lr:              0.001
+    batch_size:      256
+    epochs:          100
+    patience:        15
+
+  evaluation:
+    fpr_threshold:   0.10           # operating point for F1 / precision comparison
+
+# ── Task 2: Forecasting ────────────────────────────────────────────
+forecasting:
+  dataset:
+    seq_len:         12             # input months
+    horizon:         3              # forecast months
+    test_months:      24             # hold out last 12 months
+    val_months:       24
+
+  sarima:
+    # (p,d,q)(P,D,Q)[s] — grid searched, defaults below
+    order:           [2, 1, 1]
+    seasonal_order:  [1, 1, 0, 12]
+
+  lstm:
+    hidden_size:     64
+    num_layers:      2
+    dropout:         0.2
+    lr:              0.001
+    batch_size:      64
+    epochs:          150
+    patience:        20
+    mc_dropout_samples: 100        # for prediction intervals
+
+  tft:
+    hidden_size:     32
+    attention_head_size: 4
+    dropout:         0.1
+    hidden_continuous_size: 16
+    lr:              0.003
+    batch_size:      64
+    epochs:          50            # TFT converges faster
+    gradient_clip:   0.1
+    quantiles:       [0.05, 0.25, 0.5, 0.75, 0.95]
+
+# ── Task 3: Spend Estimation ───────────────────────────────────────
+spend:
+  dataset:
+    test_size:       0.15
+    val_size:        0.15
+    augmentation_factor: 5         # synthetic variations per base row
+    noise_std:       0.15          # log-scale noise for augmentation
+
+  xgboost:
+    n_estimators:    500
+    max_depth:       6
+    learning_rate:   0.05
+    subsample:       0.8
+    colsample_bytree: 0.8
+    min_child_weight: 3
+    reg_alpha:       0.1
+    reg_lambda:      1.0
+    random_state:    42
+
+  mlp:
+    embed_dim_nic2:  8
+    embed_dim_nic4:  16
+    embed_dim_region: 4
+    embed_dim_year:  4
+    hidden_dims:     [128, 64, 32]
+    dropout:         0.3
+    lr:              0.001
+    batch_size:      512
+    epochs:          200
+    patience:        20
+
+  tabnet:
+    n_d:             32
+    n_a:             32
+    n_steps:         5
+    gamma:           1.3
+    momentum:        0.02
+    lr:              0.02
+    batch_size:      1024
+    virtual_batch_size: 128
+    epochs:          200
+    patience:        20

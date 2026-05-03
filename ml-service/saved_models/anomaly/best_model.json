@@ -1,0 +1,7 @@
+{
+  "winner": "autoencoder",
+  "reason": "Highest PR-AUC (0.6995)",
+  "delong_p": 0.382,
+  "significant": false,
+  "model_path": "saved_models/anomaly/autoencoder.pt"
+}

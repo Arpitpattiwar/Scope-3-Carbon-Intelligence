@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.venv/
+venv/
+output.txt
+
+# Training/evaluation artifacts not needed by the inference container
+lightning_logs/
+data/
+evaluation/
+train/
+results/plots/

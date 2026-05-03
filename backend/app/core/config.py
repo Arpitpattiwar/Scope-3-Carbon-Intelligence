@@ -14,9 +14,13 @@ class Settings(BaseSettings):
     SMTP_PASSWORD: str = ""
     FRONTEND_URL: str = "http://localhost:3000"
 
-    # Phase 2: AI estimation toggle (set to True when models are ready)
     AI_ESTIMATION_ENABLED: bool = False
     AI_MODEL_PATH: Optional[str] = None
+    ML_SERVICE_URL: str = "http://localhost:8001"
+    ML_SERVICE_TIMEOUT_SECONDS: float = 10.0
+
+    # Set to true to wipe and re-seed on startup. Reset to false after first seed.
+    FORCE_RESEED: bool = False
 
     class Config:
         env_file = ".env"

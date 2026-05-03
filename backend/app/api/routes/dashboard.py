@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import func, extract, case
 from typing import Optional, List
@@ -8,6 +8,7 @@ from app.db.database import get_db
 from app.models.user import EmissionRecord, VendorProfile, User
 from app.core.security import get_current_user
 from app.services.calculation_engine import get_category_name
+from app.services.ml_client import forecast_emissions, MLServiceError
 
 router = APIRouter(prefix="/dashboard", tags=["dashboard"])
 
@@ -204,6 +205,130 @@ def get_trend(
              "record_count": r.count}
             for r in rows
         ]
+
+
+@router.get("/forecast")
+def get_forecast(
+    sector: str = Query(
+        "coal",
+        enum=["oil", "coal", "gas", "cement"],
+        description=(
+            "Macro sector proxy used for forecasting. "
+            "oil→transport, coal→industrial/purchased goods, "
+            "gas→fuel & energy, cement→construction. "
+            "The forecast uses this sector's national emission pattern "
+            "scaled to your organisation's recent emission history."
+        ),
+    ),
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    """
+    Return a 3-month emission forecast for the current user's scope,
+    augmented with ML-model confidence intervals.
+
+    Method
+    ------
+    1. Pull the last ≤24 months of approved/submitted emission totals
+       from the database for this user's scope.
+    2. Pass the last 12 months as history to the ML forecasting service.
+    3. The ML service (LSTM winner) scales the supplied history through
+       the sector-specific MinMax scaler, runs inference, and returns
+       3-month point forecasts + 90% prediction intervals.
+    4. The returned forecast values are *relative*: they represent
+       expected change patterns from the history, not absolute MtCO₂.
+
+    If fewer than 12 months of data exist, the endpoint returns the
+    history with a `forecast_available: false` flag and a reason.
+    """
+    # ── Step 1: Fetch last 24 months of actual data ──────────────────────────
+    q = _base_query(db, current_user).filter(
+        EmissionRecord.status.in_(["submitted", "approved"])
+    )
+    db_rows = q.with_entities(
+        extract("year",  EmissionRecord.period_start).label("yr"),
+        extract("month", EmissionRecord.period_start).label("mo"),
+        func.sum(EmissionRecord.calculated_co2e).label("total"),
+    ).group_by("yr", "mo").order_by("yr", "mo").all()
+
+    history_full = [
+        {
+            "period": f"{int(r.yr)}-{int(r.mo):02d}",
+            "value":  round(float(r.total or 0), 3),
+        }
+        for r in db_rows
+    ]
+
+    # ── Step 2: Require at least 12 months for a meaningful forecast ─────────
+    if len(history_full) < 12:
+        return {
+            "history": history_full,
+            "forecast": [],
+            "lower_90": [],
+            "upper_90": [],
+            "forecast_available": False,
+            "reason": (
+                f"Need at least 12 months of data to forecast. "
+                f"Currently have {len(history_full)} month(s). "
+                "Keep submitting records and the forecast will activate automatically."
+            ),
+            "model_used": None,
+            "sector": sector,
+        }
+
+    # ── Step 3: Build the 12-point history vector ────────────────────────────
+    history_values = [p["value"] for p in history_full[-12:]]
+    history_display = history_full[-12:]
+
+    # ── Step 4: Call ML service ───────────────────────────────────────────────
+    try:
+        ml_result = forecast_emissions(sector=sector, history=history_values)
+    except MLServiceError as exc:
+        raise HTTPException(
+            status_code=503,
+            detail=f"Forecast service unavailable: {exc}. "
+                   "Ensure the ML service container is running.",
+        )
+
+    # ── Step 5: Build forecast period labels (month after last history point) ─
+    last = history_display[-1]["period"]          # e.g. "2024-11"
+    last_yr, last_mo = int(last[:4]), int(last[5:7])
+    forecast_periods = []
+    for i in range(1, 4):
+        mo = (last_mo - 1 + i) % 12 + 1
+        yr = last_yr + (last_mo - 1 + i) // 12
+        forecast_periods.append(f"{yr}-{mo:02d}")
+
+    forecast_points = ml_result.get("forecast", [])
+    lower_90        = ml_result.get("lower_90", [])
+    upper_90        = ml_result.get("upper_90", [])
+
+    # Pad/trim to 3 points in case model returns different length
+    def _pad3(lst):
+        lst = list(lst)[:3]
+        while len(lst) < 3:
+            lst.append(lst[-1] if lst else 0.0)
+        return [round(v, 3) for v in lst]
+
+    forecast_points = _pad3(forecast_points)
+    lower_90        = _pad3(lower_90)
+    upper_90        = _pad3(upper_90)
+
+    return {
+        "history":            history_display,
+        "forecast_periods":   forecast_periods,
+        "forecast":           forecast_points,
+        "lower_90":           lower_90,
+        "upper_90":           upper_90,
+        "forecast_available": True,
+        "model_used":         ml_result.get("model_used", "unknown"),
+        "sector":             sector,
+        "disclaimer": (
+            "Forecast uses macro India sector emission patterns as a proxy. "
+            "Values represent expected trend direction, not exact quantities. "
+            "90% prediction intervals are indicative only (PI coverage ~63% in backtesting)."
+        ),
+    }
 
 
 @router.get("/top-vendors")

@@ -1,0 +1,24 @@
+# Inference-only runtime for the ML service container.
+# Keep training-time dependencies in requirements.txt.
+#
+# This runtime is intentionally minimal and matches the current saved-model
+# winners in this repo:
+# - anomaly: autoencoder
+# - forecasting: lstm
+# - spend: xgboost
+#
+# If a future retrain changes the winning model family (for example SARIMA or
+# TabNet), expand this file and rebuild the image.
+#
+# Note: CPU-only PyTorch is installed separately in the Dockerfile so the image
+# does not pull the large CUDA-linked Linux wheels.
+
+numpy==1.26.4
+pandas==2.2.2
+scikit-learn==1.4.2
+scipy==1.13.0
+joblib==1.4.2
+xgboost==2.0.3
+pyyaml==6.0.1
+fastapi==0.110.2
+uvicorn==0.29.0

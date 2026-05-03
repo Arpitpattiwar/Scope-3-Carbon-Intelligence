@@ -55,13 +55,23 @@ export const usersApi = {
 export const emissionsApi = {
   list: (params?: any) => api.get('/emissions', { params }),
   create: (data: any) => api.post('/emissions', data),
+  saveDraft: (data: any) => api.post('/emissions/draft', data),
+  submitDraft: (id: number) => api.post(`/emissions/${id}/submit`),
   uploadCsv: (file: File) => {
     const fd = new FormData(); fd.append('file', file)
     return api.post('/emissions/upload-csv', fd)
   },
+  estimateMissing: (data: any) => api.post('/emissions/estimate-missing', data),
+  acceptEstimate: (data: any) => api.post('/emissions/accept-estimate', data),
   getTrace: (id: number) => api.get(`/emissions/${id}/trace`),
-  updateStatus: (id: number, status: string, notes?: string) =>
-    api.patch(`/emissions/${id}/status`, { status, notes }),
+  updateStatus: (id: number, status: string, notes?: string, rejection_reason_code?: string) =>
+    api.patch(`/emissions/${id}/status`, { status, notes, rejection_reason_code }),
+  bulkStatus: (record_ids: number[], status: string, notes?: string, rejection_reason_code?: string) =>
+    api.patch('/emissions/bulk-status', { record_ids, status, notes, rejection_reason_code }),
+  calculateParametric: (category_id: number, params: Record<string, any>) =>
+    api.post('/emissions/calculate-parametric', { category_id, params }),
+  getParametricSchema: (category_id: number) =>
+    api.get(`/emissions/parametric-schema/${category_id}`),
 }
 
 export const dashboardApi = {
@@ -71,13 +81,18 @@ export const dashboardApi = {
   trend: (params?: any) => api.get('/dashboard/trend', { params }),
   topVendors: (params?: any) => api.get('/dashboard/top-vendors', { params }),
   vendorEngagement: () => api.get('/dashboard/vendor-engagement'),
+  forecast: (sector: string) => api.get('/dashboard/forecast', { params: { sector } }),
 }
 
 export const efApi = {
   list: (params?: any) => api.get('/emission-factors', { params }),
   create: (data: any) => api.post('/emission-factors', data),
+  update: (id: number, data: any) => api.patch(`/emission-factors/${id}`, data),
   deactivate: (id: number) => api.delete(`/emission-factors/${id}`),
 }
+
+// Alias so SubmitDataPage can use either name
+export const emissionFactorsApi = efApi
 
 export const auditApi = {
   logs: (params?: any) => api.get('/audit/logs', { params }),

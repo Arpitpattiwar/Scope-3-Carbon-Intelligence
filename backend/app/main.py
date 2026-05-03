@@ -19,6 +19,7 @@ from app.api.routes.targets       import router as targets_router
 from app.api.routes.attachments   import router as attach_router
 from app.api.routes.vendor_tools  import router as vendor_router
 from app.api.routes.misc          import ef_router, audit_router, period_router
+from app.services.ml_client import MLServiceError, get_ml_health
 
 Base.metadata.create_all(bind=engine)
 
@@ -62,4 +63,10 @@ def startup_event():
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "version": "1.2.0"}
+    ml_status = {"status": "unavailable"}
+    try:
+        ml_status = get_ml_health()
+    except MLServiceError as exc:
+        ml_status = {"status": "unavailable", "detail": str(exc)}
+
+    return {"status": "ok", "version": "1.2.0", "ml_service": ml_status}

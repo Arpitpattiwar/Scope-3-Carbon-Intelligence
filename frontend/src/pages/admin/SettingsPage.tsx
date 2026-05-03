@@ -168,10 +168,45 @@ SMTP_PASSWORD: xxxx-xxxx-xxxx-xxxx`}</pre>
         </div>
       </div>
 
-      {/* Phase 2 */}
-      <div className="card p-5 border-dashed">
-        <h3 className="text-sm font-semibold text-gray-400 mb-1">Phase 2 Settings (Coming Soon)</h3>
-        <p className="text-xs text-gray-400">AI estimation engine toggle · Benchmark configuration · Carbon pricing simulation · Weekly digest emails</p>
+      {/* Phase 2 — AI & Advanced Features */}
+      <div className="card p-5">
+        <div className="flex items-center gap-2 mb-3">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-brand-100 text-brand-700 rounded-full">Phase 2 — Active</span>
+          <h3 className="text-sm font-semibold text-gray-900">AI Estimation &amp; Advanced Features</h3>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="p-3 bg-green-50 border border-green-100 rounded-xl">
+            <p className="text-xs font-semibold text-green-800 mb-1">✅ AI Spend-Based Estimation</p>
+            <p className="text-xs text-green-700">XGBoost ML model (Cat 1, 2, 13–15) + DEFRA rule-based fallback for all 15 categories. Enabled via AI_ESTIMATION_ENABLED=true in docker-compose.</p>
+          </div>
+          <div className="p-3 bg-green-50 border border-green-100 rounded-xl">
+            <p className="text-xs font-semibold text-green-800 mb-1">✅ LSTM Emission Forecast</p>
+            <p className="text-xs text-green-700">3-month forward forecast using LSTM model trained on India macro sector data. Requires ≥12 months of platform data. Visible on dashboard for all roles.</p>
+          </div>
+          <div className="p-3 bg-green-50 border border-green-100 rounded-xl">
+            <p className="text-xs font-semibold text-green-800 mb-1">✅ Anomaly Detection</p>
+            <p className="text-xs text-green-700">Autoencoder model (PR-AUC 0.70) flags outlier records on submit and CSV upload. Covers 6 of 15 categories; false-positive rate ~64% — use as advisory, not hard gate.</p>
+          </div>
+          <div className="p-3 bg-amber-50 border border-amber-100 rounded-xl">
+            <p className="text-xs font-semibold text-amber-800 mb-1">🔜 Benchmark Engine</p>
+            <p className="text-xs text-amber-700">Compare emission intensity against industry average. Configure sector benchmarks and intensity thresholds per category. Planned Q3 2025.</p>
+          </div>
+          <div className="p-3 bg-amber-50 border border-amber-100 rounded-xl">
+            <p className="text-xs font-semibold text-amber-800 mb-1">🔜 Carbon Pricing Simulation</p>
+            <p className="text-xs text-amber-700">Model cost of inaction at ₹/tCO₂e. Simulate SBTi pathway scenarios and cost impact on EBITDA. Planned Q3 2025.</p>
+          </div>
+          <div className="p-3 bg-amber-50 border border-amber-100 rounded-xl">
+            <p className="text-xs font-semibold text-amber-800 mb-1">🔜 Predictive Reduction Targets</p>
+            <p className="text-xs text-amber-700">AI-suggested reduction targets aligned to SBTi 1.5°C pathways based on your emission profile and sector benchmarks. Planned Q4 2025.</p>
+          </div>
+        </div>
+        <div className="mt-3 p-3 bg-gray-50 rounded-xl">
+          <p className="text-xs text-gray-500">
+            <strong>Model notes:</strong> Spend model R²=0.99 on synthetic training data (expect ±40-60% on real procurement). 
+            Forecast PI coverage ~63% (nominal 90%) — treat intervals as indicative. 
+            Set <code className="bg-gray-200 px-1 rounded">FORCE_RESEED=false</code> after demo to protect live data.
+          </p>
+        </div>
       </div>
 
       {/* Period Modal */}

@@ -31,9 +31,10 @@ class DataQuality(str, enum.Enum):
 
 
 class InputMethod(str, enum.Enum):
-    manual = "manual"
-    csv    = "csv"
-    api    = "api"
+    manual      = "manual"
+    csv         = "csv"
+    api         = "api"
+    ai_estimate = "ai_estimate"   # Phase 2: accepted AI spend-based estimate
 
 
 class RecordStatus(str, enum.Enum):
@@ -43,10 +44,23 @@ class RecordStatus(str, enum.Enum):
     rejected  = "rejected"
 
 
+
+
+class RejectionReasonCode(str, enum.Enum):
+    wrong_unit          = 'wrong_unit'
+    inflated_value      = 'inflated_value'
+    wrong_ef_applied    = 'wrong_ef_applied'
+    missing_docs        = 'missing_docs'
+    data_quality_low    = 'data_quality_low'
+    duplicate_entry     = 'duplicate_entry'
+    period_mismatch     = 'period_mismatch'
+    other               = 'other'
+
 class EFSource(str, enum.Enum):
     DEFRA  = "DEFRA"
     IPCC   = "IPCC"
     CPCB   = "CPCB"
+    PCAF   = "PCAF"
     custom = "custom"
 
 
@@ -197,7 +211,11 @@ class EmissionRecord(Base):
     region         = Column(Enum(Region))
     status         = Column(Enum(RecordStatus), default=RecordStatus.draft)
     notes          = Column(Text)
-    rejection_reason = Column(Text)          # shown to vendor when rejected
+    rejection_reason      = Column(Text)          # shown to vendor when rejected
+    rejection_reason_code = Column(Enum(RejectionReasonCode), nullable=True)
+    parent_record_id      = Column(Integer, ForeignKey('emission_records.id'), nullable=True)
+    input_mode            = Column(String(20), default='direct')   # direct | parametric
+    parametric_inputs     = Column(JSON, nullable=True)            # raw params before calc
 
     is_ai_estimated = Column(Boolean, default=False)
     ai_estimate_id  = Column(Integer, ForeignKey("ai_estimates.id"), nullable=True)
@@ -212,6 +230,8 @@ class EmissionRecord(Base):
     emission_factor   = relationship("EmissionFactor", back_populates="emission_records")
     ai_estimate       = relationship("AIEstimate", back_populates="emission_record",
                                      foreign_keys=[ai_estimate_id])
+    parent_record     = relationship("EmissionRecord", remote_side="EmissionRecord.id",
+                                     foreign_keys=[parent_record_id], uselist=False)
 
 
 # ── Audit Log ─────────────────────────────────────────────────────────────────
