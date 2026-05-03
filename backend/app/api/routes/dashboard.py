@@ -180,12 +180,13 @@ def get_trend(
         ]
 
     elif frequency == "quarterly":
+        quarter_expr = func.ceil(extract("month", EmissionRecord.period_start) / 3).label("qtr")
         rows = q.with_entities(
             extract("year", EmissionRecord.period_start).label("yr"),
-            ((extract("month", EmissionRecord.period_start) - 1) / 3 + 1).label("qtr"),
+            quarter_expr,
             func.sum(EmissionRecord.calculated_co2e).label("total"),
             func.count(EmissionRecord.id).label("count"),
-        ).group_by("yr", "qtr").order_by("yr", "qtr").all()
+        ).group_by("yr", quarter_expr).order_by("yr", quarter_expr).all()
         return [
             {"period": f"{int(r.yr)}-Q{int(r.qtr)}",
              "total_co2e": round(float(r.total or 0), 3),
