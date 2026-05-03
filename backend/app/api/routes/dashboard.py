@@ -322,6 +322,27 @@ def get_forecast(
     lower_90        = _pad3(lower_90)
     upper_90        = _pad3(upper_90)
 
+    recent_avg = sum(history_values) / len(history_values) if history_values else 0.0
+    if recent_avg > 0:
+        min_reasonable = recent_avg * 0.5
+        max_reasonable = recent_avg * 1.5
+
+        def _anchor(value):
+            return round(min(max(float(value), min_reasonable), max_reasonable), 3)
+
+        anchored_forecast = [_anchor(v) for v in forecast_points]
+        anchored_lower = [
+            round(min(_anchor(v), anchored_forecast[i]), 3)
+            for i, v in enumerate(lower_90)
+        ]
+        anchored_upper = [
+            round(max(_anchor(v), anchored_forecast[i]), 3)
+            for i, v in enumerate(upper_90)
+        ]
+        forecast_points = anchored_forecast
+        lower_90 = anchored_lower
+        upper_90 = anchored_upper
+
     return {
         "history":            history_display,
         "forecast_periods":   forecast_periods,
@@ -333,7 +354,8 @@ def get_forecast(
         "sector":             sector,
         "disclaimer": (
             "Forecast uses macro India sector emission patterns as a proxy. "
-            "Values represent expected trend direction, not exact quantities. "
+            "Values are anchored to your recent 12-month average to reduce unrealistic jumps. "
+            "They represent expected trend direction, not exact quantities. "
             "90% prediction intervals are indicative only (PI coverage ~63% in backtesting)."
         ),
     }
